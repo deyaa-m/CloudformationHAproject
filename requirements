@@ -1,0 +1,22 @@
+1. LaunchConfiguration 
+    4 servers , 2 in privsub
+2. AutoscalingGroup using LaunchConfiguration
+3. 2cpu, 4ram, 10G gp2, ubuntu18
+----------
+4. IAM role attached to instances to use s3
+5. LoadBalancer , LoadBalancer healthcheck, app port 80, outbound internet access
+6. LB SG inbound 0.0.0.0/0:80, outbound 0.0.0.0/0:80
+7. app to be deployed in privsub
+8. output export LB http://url
+
+---------
+Considerations:
+1. deploy servers to pubsub with ssh to troubleshoot then move them to privsub and remove ssh
+2. deploy without LB to make sure it works as expected
+3. bare in mind thhat it takes time for the app to be responsive so, mind the LB healthcheck
+4. extra mile : Bastion host in pubsub open to ur IP only
+
+
+Notes: 
+- Eip remains allocated even after deleting stack
+- ALB type dualstack needs ipv6 subnets

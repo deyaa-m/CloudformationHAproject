@@ -1,0 +1,233 @@
+Parameters:
+  EnvName: 
+    Type: String
+    Default: udagram-infra
+  VpcCidr: 
+    Type: String
+    Default: 10.0.0.0/16
+  PubSub1Cidr: 
+    Type: String
+    Default: 10.0.1.0/24
+  PubSub2Cidr: 
+    Type: String
+    Default: 10.0.2.0/24
+  PriSub1Cidr: 
+    Type: String
+    Default: 10.0.3.0/24
+  PriSub2Cidr: 
+    Type: String
+    Default: 10.0.4.0/24
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-vpc
+  VPC6:
+    Type: AWS::EC2::VPCCidrBlock
+    Properties: 
+      AmazonProvidedIpv6CidrBlock: true
+      #CidrBlock: 
+      VpcId: !Ref VPC
+
+  Igw:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-igw
+  IgwAttachment: 
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn: 
+      - Igw
+    Properties:
+      InternetGatewayId: !Ref Igw
+      VpcId: !Ref VPC
+
+  PubSub1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '']
+      CidrBlock: !Ref PubSub1Cidr
+      MapPublicIpOnLaunch: true
+      #AssignIpv6AddressOnCreation: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-pubSub1
+
+  PubSub2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs '']
+      CidrBlock: !Ref PubSub2Cidr
+      MapPublicIpOnLaunch: true
+      #AssignIpv6AddressOnCreation: true
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-pubSub2
+
+
+  PriSub1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '']
+      CidrBlock: !Ref PriSub1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-PriSub1
+
+  PriSub2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs '']
+      CidrBlock: !Ref PriSub2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-PriSub2
+  
+  Eip1:
+    Type: AWS::EC2::EIP
+    DependsOn: IgwAttachment
+    Properties:
+      Domain: vpc
+
+  Eip2:
+    Type: AWS::EC2::EIP
+    DependsOn: IgwAttachment
+    Properties:
+      Domain: vpc
+    
+  Nat1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !Ref PriSub1
+      AllocationId: !GetAtt Eip1.AllocationId
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-nat1 
+  Nat2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt Eip2.AllocationId
+      SubnetId: !Ref PriSub2
+      Tags:
+      - Key: Name
+        Value: !Sub ${EnvName}-nat2
+
+  PubRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags: 
+      - Key: Name
+        Value: !Sub ${EnvName}-pubRT
+  PriRT1:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref VPC
+      Tags: 
+      - Key: Name
+        Value: !Sub ${EnvName}-PriRT1
+  PriRT2:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref VPC
+      Tags: 
+      - Key: Name
+        Value: !Sub ${EnvName}-PriRT2
+
+  PubRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PubRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref Igw
+
+  PriRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PriRT1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref Nat1
+  PriRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PriRT2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref Nat2
+
+  PubRTAss1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PubRT
+      SubnetId: !Ref PubSub1
+  PubRTAss2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PubRT
+      SubnetId: !Ref PubSub2
+  PriRTAss1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PriRT1
+      SubnetId: !Ref PriSub1
+  PriRTAss2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PriRT2
+      SubnetId: !Ref PriSub2      
+Outputs:
+  VPC:
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${EnvName}-VpcId
+
+  PubSub1:
+    Value: !Ref PubSub1
+    Export:
+      Name: !Sub ${EnvName}-PubSub1
+
+  PriSub1:
+    Value: !Ref PriSub1
+    Export:
+      Name: !Sub ${EnvName}-PriSub1
+
+  PubSub2:
+    Value: !Ref PubSub2
+    Export:
+      Name: !Sub ${EnvName}-PubSub2
+
+  PriSub2:
+    Value: !Ref PriSub2
+    Export:
+      Name: !Sub ${EnvName}-PriSub2
+
+  PubSub1AZ:
+    Value: !GetAtt PubSub1.AvailabilityZone
+    Export:
+      Name: !Sub ${EnvName}-PubSub1AZ
+
+  PubSub2AZ:
+    Value: !GetAtt PubSub2.AvailabilityZone
+    Export:
+      Name: !Sub ${EnvName}-PubSub2AZ    
+      
+  PriSub1AZ:
+    Value: !GetAtt PriSub1.AvailabilityZone
+    Export:
+      Name: !Sub ${EnvName}-PriSub1AZ
+
+  PriSub2AZ:
+    Value: !GetAtt PriSub2.AvailabilityZone
+    Export:
+      Name: !Sub ${EnvName}-PriSub2AZ    
