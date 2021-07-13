@@ -2,7 +2,7 @@
 #Parameters:
 ## whatever you consider a changing value, put it as a parameter instead of hard-coding it into your script
 #Resources:
-#  #instace profile contains the IAM Role name(s) that we want to associate to our auto scaling EC2 Servers
+#  #instace profile contains the Iam Role name(s) that we want to associate to our auto scaling EC2 Servers
 #  ProfileWithRolesForOurApp:
 #    Type: AWS::IAM::InstanceProfile
 #    Properties: 
@@ -104,10 +104,15 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           sudo apt-get update -y
+          apt-get install unzip awscli -y
           sudo apt-get install apache2 -y
           sudo systemctl start apache2.service          
+          cd /var/www/html
+          aws s3 cp s3://udacity-demo-1/udacity.zip .
+          unzip -o udacity.zip      
       ImageId: !Ref ImageId
       KeyName: deyaa-Think
+      IamInstanceProfile: !Ref InstanceProfile
       SecurityGroups:
       - Ref: WebAppSg
       InstanceType: !Ref InstanceType
@@ -119,14 +124,13 @@ Resources:
   ASG:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      #AutoScalingGroupName: !Sub ${EnvName}-ASG
       VPCZoneIdentifier:
       - 
         Fn::ImportValue:
-          !Sub ${Infra}-PriSub1
+          !Sub ${Infra}-PubSub1
       - 
         Fn::ImportValue:
-          !Sub ${Infra}-PubSub2
+          !Sub ${Infra}-PriSub2
       Cooldown: 180
       HealthCheckGracePeriod: 0
       LaunchConfigurationName: !Ref LC
@@ -145,9 +149,6 @@ Resources:
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      #IpAddressType: ipv4
-      #Name: !Ref ${EnvName}-ALB
-      #Scheme: internet-facing
       SecurityGroups: 
         - !Ref ALBSG
       Subnets: 
@@ -226,7 +227,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub ${EnvName}-IamRole
-      Description: IAM Role Allowing EC2 instance to use S3 bucket
+      Description: Iam Role Allowing EC2 instance to use S3 bucket
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -237,15 +238,26 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Path: /
-      Policies:
-        - PolicyName: ReadS3
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 's3:GetObject'
-                Resource: 'arn:aws:s3:::udacity-demo-1'
       MaxSessionDuration: 3600
+  
+  RolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ReadS3
+      Roles: 
+      - !Ref IamRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: 's3:GetObject'
+            Resource: 'arn:aws:s3:::udacity-demo-1/udacity.zip'
+
+Outputs:
+  ALB:
+    Value:  !Join [ "", [ 'http://', !GetAtt ALB.DNSName]]
+    Export:
+      Name: !Sub ${EnvName}-ALB
 
   #Instance:
   #  Type: AWS::EC2::Instance
