@@ -55,7 +55,6 @@ Resources:
       AvailabilityZone: !Select [ 0, !GetAZs '']
       CidrBlock: !Ref PubSub1Cidr
       MapPublicIpOnLaunch: true
-      #AssignIpv6AddressOnCreation: true
       Tags:
       - Key: Name
         Value: !Sub ${EnvName}-pubSub1
@@ -67,7 +66,6 @@ Resources:
       AvailabilityZone: !Select [ 1, !GetAZs '']
       CidrBlock: !Ref PubSub2Cidr
       MapPublicIpOnLaunch: true
-      #AssignIpv6AddressOnCreation: true
       Tags:
       - Key: Name
         Value: !Sub ${EnvName}-pubSub2
@@ -110,7 +108,7 @@ Resources:
   Nat1:
     Type: AWS::EC2::NatGateway
     Properties:
-      SubnetId: !Ref PriSub1
+      SubnetId: !Ref PubSub1
       AllocationId: !GetAtt Eip1.AllocationId
       Tags:
       - Key: Name
@@ -119,7 +117,7 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt Eip2.AllocationId
-      SubnetId: !Ref PriSub2
+      SubnetId: !Ref PubSub2
       Tags:
       - Key: Name
         Value: !Sub ${EnvName}-nat2
