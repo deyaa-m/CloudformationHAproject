@@ -1,6 +1,6 @@
 ## Udagram Project
 
-Download udagram project: [**s3://udacity-demo-1/udacity.zip**](s3://udacity-demo-1/udacity.zip)
+Download udagram project: **[s3://udacity-demo-1/udacity.zip](s3://udacity-demo-1/udacity.zip)**
 
 ### Project Diagram
 ![alt text](https://github.com/deyaa-m/CloudformationHAproject/blob/master/udacity-iac.jpg)
