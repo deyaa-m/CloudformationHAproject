@@ -140,8 +140,9 @@ Resources:
         PropagateAtLaunch: true
       TargetGroupARNs:
       - !Ref ALBTG
-      MaxSize: 3
-      MinSize: 2
+      MaxSize: 8
+      MinSize: 1
+      DesiredCapacity: 4
       #MetricsCollection:
       #- Granularity: "1Minute"
       #  Metrics:
