@@ -18,6 +18,8 @@ The project is split in two main parts:
 
 *update:* if you hate wating, I would suggest using this:
 
-**Provision:**  ``` aws cloudformation create-stack --stack-name udagram-nest --template-body file://nesting-udagram.yaml  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND```
+### Nested Stacks:
+
+**Provision:**  ``` aws cloudformation create-stack --stack-name udagram-nest --template-body file://udagram-nest.yaml  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND```
 
 **Delete:** ```aws cloudformation delete-stack udagram-nest```
