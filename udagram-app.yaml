@@ -47,7 +47,16 @@ Parameters:
     Default: ami-09a56048b08f94cdf
   InstanceType:
     Type: String
-    Default: t2.micro
+    Default: t2.medium
+  MaxSize:
+    Type: String
+    Default: 8
+  MinSize:
+    Type: String
+    Default: 1
+  DesiredCapacity:
+    Type: String
+    Default: 4
 
 Resources:
   WebAppSg:
@@ -140,9 +149,9 @@ Resources:
         PropagateAtLaunch: true
       TargetGroupARNs:
       - !Ref ALBTG
-      MaxSize: 8
-      MinSize: 1
-      DesiredCapacity: 4
+      MaxSize: !Ref MaxSize
+      MinSize: !Ref MinSize
+      DesiredCapacity: !Ref DesiredCapacity
       #MetricsCollection:
       #- Granularity: "1Minute"
       #  Metrics:
@@ -253,12 +262,61 @@ Resources:
           - Effect: Allow
             Action: 's3:GetObject'
             Resource: 'arn:aws:s3:::udacity-demo-1/udacity.zip'
+  ASP1:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties: 
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref ASG
+      EstimatedInstanceWarmup: 180
+      PolicyType: TargetTrackingScaling
+      #ScalingAdjustment: 1
+      TargetTrackingConfiguration: 
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 60
+  #ASP2:
+  #  Type: AWS::AutoScaling::ScalingPolicy
+  #  Properties: 
+  #    AdjustmentType: ChangeInCapacity
+  #    AutoScalingGroupName: !Ref ASG
+  #    EstimatedInstanceWarmup: 180
+  #    PolicyType: TargetTrackingScaling
+  #    #ScalingAdjustment: 2
+  #    TargetTrackingConfiguration: 
+  #      PredefinedMetricSpecification:
+  #        PredefinedMetricType: ASGAverageCPUUtilization
+  #      TargetValue: 80
+  #1ASP:
+  #  Type: AWS::AutoScaling::ScalingPolicy
+  #  Properties: 
+  #    AdjustmentType: ChangeInCapacity
+  #    AutoScalingGroupName: !Ref ASG
+  #    EstimatedInstanceWarmup: 180
+  #    PolicyType: TargetTrackingScaling
+  #    #ScalingAdjustment: -1
+  #    TargetTrackingConfiguration: 
+  #      PredefinedMetricSpecification:
+  #        PredefinedMetricType: ASGAverageCPUUtilization
+  #      TargetValue: 30
+  #2ASP:
+  #  Type: AWS::AutoScaling::ScalingPolicy
+  #  Properties: 
+  #    AdjustmentType: ChangeInCapacity
+  #    AutoScalingGroupName: !Ref ASG
+  #    EstimatedInstanceWarmup: 180
+  #    PolicyType: TargetTrackingScaling
+  #    #ScalingAdjustment: -2
+  #    TargetTrackingConfiguration: 
+  #      PredefinedMetricSpecification:
+  #        PredefinedMetricType: ASGAverageCPUUtilization
+  #      TargetValue: 15
 
 Outputs:
   ALB:
     Value:  !Join [ "", [ 'http://', !GetAtt ALB.DNSName]]
     Export:
       Name: !Sub ${EnvName}-ALB
+
 
   #Instance:
   #  Type: AWS::EC2::Instance
@@ -360,55 +418,5 @@ Outputs:
 
   
   
-
-  #ASP1:
-  #  Type: AWS::AutoScaling::ScalingPolicy
-  #  Properties: 
-  #    AdjustmentType: ChangeInCapacity
-  #    AutoScalingGroupName: !Ref ASG
-  #    EstimatedInstanceWarmup: 240
-  #    PolicyType: TargetTrackingScaling
-  #    ScalingAdjustment: 1
-  #    TargetTrackingConfiguration: 
-  #      PredefinedMetricSpecification:
-  #        PredefinedMetricType: ASGAverageCPUUtilization
-  #      TargetValue: 60
-  #ASP2:
-  #  Type: AWS::AutoScaling::ScalingPolicy
-  #  Properties: 
-  #    AdjustmentType: ChangeInCapacity
-  #    AutoScalingGroupName: !Ref ASG
-  #    EstimatedInstanceWarmup: 240
-  #    PolicyType: TargetTrackingScaling
-  #    ScalingAdjustment: 2
-  #    TargetTrackingConfiguration: 
-  #      PredefinedMetricSpecification:
-  #        PredefinedMetricType: ASGAverageCPUUtilization
-  #      TargetValue: 80
-  #1ASP:
-  #  Type: AWS::AutoScaling::ScalingPolicy
-  #  Properties: 
-  #    AdjustmentType: ChangeInCapacity
-  #    AutoScalingGroupName: !Ref ASG
-  #    EstimatedInstanceWarmup: 180
-  #    PolicyType: TargetTrackingScaling
-  #    ScalingAdjustment: -1
-  #    TargetTrackingConfiguration: 
-  #      PredefinedMetricSpecification:
-  #        PredefinedMetricType: ASGAverageCPUUtilization
-  #      TargetValue: 30
-  #2ASP:
-  #  Type: AWS::AutoScaling::ScalingPolicy
-  #  Properties: 
-  #    AdjustmentType: ChangeInCapacity
-  #    AutoScalingGroupName: !Ref ASG
-  #    EstimatedInstanceWarmup: 180
-  #    PolicyType: TargetTrackingScaling
-  #    ScalingAdjustment: -2
-  #    TargetTrackingConfiguration: 
-  #      PredefinedMetricSpecification:
-  #        PredefinedMetricType: ASGAverageCPUUtilization
-  #      TargetValue: 15
-
 
   
