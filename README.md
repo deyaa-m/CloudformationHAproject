@@ -7,11 +7,16 @@ The project is split in two main parts:
 2. udagram-app.yaml: which holds the project application layer such as (instance launch condfigurations, Autoscaling)
 
 ### How to Provision Stacks:
-1. aws cloudformation create-stack udagram-infra udagram-infra.yaml  
-2. aws cloudformation create-stack udagram-app udagram-app.yaml --capabilities CAPABILITY_NAMED_IAM
+1. ```aws cloudformation create-stack udagram-infra udagram-infra.yaml```  
+2. ```aws cloudformation create-stack udagram-app udagram-app.yaml --capabilities CAPABILITY_NAMED_IAM```
 
 ### How to Delete Stacks:
 1. aws cloudformation delete-stack udagram-app
 2. aws cloudformation delete-stack udagram-infra
 
-ps: wait untill first stack is provisioned/deleted before further action.
+*ps*: wait untill first stack is provisioned/deleted before further action.
+
+update: if you hate wating, I would suggest using this:
+**Provision:**  ``` aws cloudformation create-stack --stack-name udagram-nest --template-body file://nesting-udagram.yaml  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND```
+
+**Delete:** ```aws cloudformation delete-stack udagram-nest```
