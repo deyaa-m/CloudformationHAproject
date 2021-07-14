@@ -1,0 +1,12 @@
+##
+Resources:
+  Infra:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://udagram-nest.s3.eu-west-2.amazonaws.com/udagram-infra.yaml
+
+  App:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: Infra
+    Properties:
+      TemplateURL: https://udagram-nest.s3.eu-west-2.amazonaws.com/udagram-app.yaml
