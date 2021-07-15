@@ -19,11 +19,11 @@ The project is split in two main parts:
 
 *ps*: wait untill first stack is provisioned/deleted before further action.
 
-##update: Nesting
+## update: Nesting
 
 ### Nested Stacks:
 
-Following **Best Practices**, nesting was more reliable and automattion oriented.
+Following **Best Practices**, nesting was more reliable and automation oriented.
 
 Running the following script will create a root stack with Infra and App stacks as chlidren.
 
@@ -35,11 +35,14 @@ aws cloudformation create-stack --stack-name udagram-nest \
 --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
 ```
 
-Explanations: 
+Explainations: 
 
 ``` CAPABILITY_NAMED_IAM``` gives stack the capability of creating IAM Roles
 
 ```CAPABILITY_AUTO_EXPAND``` gives stack the capability of nesting
+
 ```Parameter``` it run a shell command to identify your local public IP address to use it as sourceip in Bastion SG
 
-**Delete:** ```aws cloudformation delete-stack udagram-nest```
+**Delete:** 
+
+```aws cloudformation delete-stack udagram-nest```
