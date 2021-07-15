@@ -142,7 +142,7 @@ Resources:
       VPCZoneIdentifier:
       - 
         Fn::ImportValue:
-          !Sub ${Infra}-PubSub1
+          !Sub ${Infra}-PriSub1
       - 
         Fn::ImportValue:
           !Sub ${Infra}-PriSub2
