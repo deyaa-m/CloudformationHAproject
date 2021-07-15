@@ -4,6 +4,7 @@ Download udagram project: **[s3://udacity-demo-1/udacity.zip](s3://udacity-demo-
 
 ### Project Diagram
 ![alt text](https://github.com/deyaa-m/CloudformationHAproject/blob/master/udacity-iac.jpg)
+
 ### Project Architecture
 The project is split in two main parts:
 1. udagram-infra.yaml: which holds the project infrastructure layer such as (VPC, Subnets, Gateways and Routes)
@@ -46,3 +47,5 @@ Explainations:
 **Delete:** 
 
 ```aws cloudformation delete-stack udagram-nest```
+
+## Udagram Link [Udagram](http://udagram-alb-1wzn7cje6uniw-1887013672.eu-west-2.elb.amazonaws.com/)
