@@ -228,4 +228,4 @@ Outputs:
   PriSub2AZ:
     Value: !GetAtt PriSub2.AvailabilityZone
     Export:
-      Name: !Sub ${EnvName}-PriSub2AZ    
+      Name: !Sub ${EnvName}-PriSub2AZ
