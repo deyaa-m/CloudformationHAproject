@@ -36,9 +36,9 @@ Parameters:
   DesiredCapacity:
     Type: String
     Default: 4
-  MyIp: 
+  HomeIp: 
     Type: String
-    
+
 Resources:  
   BastionSG:
     Type: AWS::EC2::SecurityGroup
@@ -51,7 +51,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: 22
         ToPort: 22
-        CidrIp: !Ref MyIp
+        CidrIp: !Sub ${HomeIp}
   
   Bastion:
     Type: AWS::EC2::Instance
@@ -62,7 +62,7 @@ Resources:
       SubnetId: 
         Fn::ImportValue:
           !Sub ${Infra}-PubSub1
-      SecurityGroups:
+      SecurityGroupIds:
       - !Ref BastionSG
 
   WebAppSg:
@@ -84,7 +84,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: 443
         ToPort: 443
-        CidrIp: 0.0.0.0/0     
+        CidrIp: 10.0.0.0/16     
       SecurityGroupEgress :
       - IpProtocol: tcp   
         FromPort: 0  
