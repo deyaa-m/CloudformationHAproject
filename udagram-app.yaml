@@ -1,25 +1,4 @@
-## starter code
-#Parameters:
-## whatever you consider a changing value, put it as a parameter instead of hard-coding it into your script
-#Resources:
-#  #instace profile contains the Iam Role name(s) that we want to associate to our auto scaling EC2 Servers
-#  ProfileWithRolesForOurApp:
-#    Type: AWS::IAM::InstanceProfile
-#    Properties: 
-#      Roles:
-#        - UdacityS3ReadOnlyEC2
-#  
-#          #!/bin/bash
-#          apt-get update -y
-#          apt-get install unzip awscli -y
-#          apt-get install apache2 -y
-#          systemctl start apache2.service
-#          cd /var/www/html
-#          aws s3 cp s3://udacity-demo-1/udacity.zip .
-#          unzip -o udacity.zip
-#  Outputs: 
-#  #Bonus points for useful outputs!## Challenge 2 in Udacity DevOps NanoDegree
-
+## Udagram application layer
 Parameters:
   EnvName: 
     Type: String
@@ -57,8 +36,35 @@ Parameters:
   DesiredCapacity:
     Type: String
     Default: 4
+  MyIp: 
+    Type: String
+    
+Resources:  
+  BastionSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Bastion security group allowing access to WebApp Servers
+      VpcId: 
+        Fn::ImportValue:
+          !Sub ${Infra}-VpcId
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref MyIp
+  
+  Bastion:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref ImageId
+      InstanceType: t2.micro
+      KeyName: deyaa-Think
+      SubnetId: 
+        Fn::ImportValue:
+          !Sub ${Infra}-PubSub1
+      SecurityGroups:
+      - !Ref BastionSG
 
-Resources:
   WebAppSg:
     Type: AWS::EC2::SecurityGroup
     Properties: 
@@ -70,11 +76,11 @@ Resources:
       - IpProtocol: tcp
         FromPort: 80
         ToPort: 80
-        CidrIp: 0.0.0.0/0
+        CidrIp: 10.0.0.0/16
       - IpProtocol: tcp
         FromPort: 22
         ToPort: 22
-        CidrIp: 0.0.0.0/0
+        CidrIp: 10.0.0.0/16
       - IpProtocol: tcp
         FromPort: 443
         ToPort: 443
@@ -120,7 +126,7 @@ Resources:
           aws s3 cp s3://udacity-demo-1/udacity.zip .
           unzip -o udacity.zip      
       ImageId: !Ref ImageId
-      KeyName: deyaa-Think
+      #KeyName: deyaa-Think
       IamInstanceProfile: !Ref InstanceProfile
       SecurityGroups:
       - Ref: WebAppSg
@@ -176,18 +182,10 @@ Resources:
     Properties: 
       DefaultActions: 
       - Type: "forward"
-      #  ForwardConfig:
-      #    Protocol: "HTTP"
-      #    Port: 80
-      #    Host: "#{host}"
-      #    Path: "/#{path}"
-      #    Query: "#{query}"
-      #    StatusCode: "HTTP_301"    
         TargetGroupArn: !Ref ALBTG  
       LoadBalancerArn: !Ref ALB
       Port: 80
       Protocol: HTTP
-      #SslPolicy: String
 
   ALBListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
@@ -226,7 +224,6 @@ Resources:
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
-    #DependsOn: ALB      
     Properties:
       InstanceProfileName: instanceS3profile
       Path: /
@@ -269,154 +266,13 @@ Resources:
       AutoScalingGroupName: !Ref ASG
       EstimatedInstanceWarmup: 180
       PolicyType: TargetTrackingScaling
-      #ScalingAdjustment: 1
       TargetTrackingConfiguration: 
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
         TargetValue: 60
-  #ASP2:
-  #  Type: AWS::AutoScaling::ScalingPolicy
-  #  Properties: 
-  #    AdjustmentType: ChangeInCapacity
-  #    AutoScalingGroupName: !Ref ASG
-  #    EstimatedInstanceWarmup: 180
-  #    PolicyType: TargetTrackingScaling
-  #    #ScalingAdjustment: 2
-  #    TargetTrackingConfiguration: 
-  #      PredefinedMetricSpecification:
-  #        PredefinedMetricType: ASGAverageCPUUtilization
-  #      TargetValue: 80
-  #1ASP:
-  #  Type: AWS::AutoScaling::ScalingPolicy
-  #  Properties: 
-  #    AdjustmentType: ChangeInCapacity
-  #    AutoScalingGroupName: !Ref ASG
-  #    EstimatedInstanceWarmup: 180
-  #    PolicyType: TargetTrackingScaling
-  #    #ScalingAdjustment: -1
-  #    TargetTrackingConfiguration: 
-  #      PredefinedMetricSpecification:
-  #        PredefinedMetricType: ASGAverageCPUUtilization
-  #      TargetValue: 30
-  #2ASP:
-  #  Type: AWS::AutoScaling::ScalingPolicy
-  #  Properties: 
-  #    AdjustmentType: ChangeInCapacity
-  #    AutoScalingGroupName: !Ref ASG
-  #    EstimatedInstanceWarmup: 180
-  #    PolicyType: TargetTrackingScaling
-  #    #ScalingAdjustment: -2
-  #    TargetTrackingConfiguration: 
-  #      PredefinedMetricSpecification:
-  #        PredefinedMetricType: ASGAverageCPUUtilization
-  #      TargetValue: 15
 
 Outputs:
   ALB:
     Value:  !Join [ "", [ 'http://', !GetAtt ALB.DNSName]]
     Export:
       Name: !Sub ${EnvName}-ALB
-
-
-  #Instance:
-  #  Type: AWS::EC2::Instance
-  #  Properties: 
-  #    ImageId: !Ref ImageId
-  #    InstanceType: !Ref InstanceType
-  #    KeyName: deyaa-Think
-  #    LaunchTemplate: 
-  #      LaunchTemplateId: !Ref LT
-  #      Version: !GetAtt LT.LatestVersionNumber
-  #    #NetworkInterfaces: 
-  #    #  - DeviceIndex: 0
-  #    #    AssociatePublicIpAddress: true
-  #    #    DeleteOnTermination: true
-  #    #    #GroupSet:
-  #    #    # - !Ref WebAppSg
-  #        SubnetId: 
-  #          Fn::ImportValue: !Sub ${Infra}-PriSub1 
-  #    #SecurityGroupIds: 
-  #    #  - String
-  #    UserData:
-  #      Fn::Base64: !Sub |
-  #          #!/bin/bash
-  #          apt-get update -y
-  #          apt-get install unzip awscli -y
-  #          apt-get install apache2 -y
-  #          systemctl start apache2.service
-  #          cd /var/www/html
-  #          aws s3 cp s3://udacity-demo-1/udacity.zip .
-  #          unzip -o udacity.zip
-  #    #Volumes: 
-      #  - Volume
-  #LT:
-  #  Type: AWS::EC2::LaunchTemplate
-  #  Properties: 
-  #    LaunchTemplateName: !Sub ${EnvName}-LT
-  #    LaunchTemplateData: 
-  #      IamInstanceProfile: 
-  #        Name: !Ref InstanceProfile
-  #      ImageId: !Ref ImageId
-  #      InstanceType: !Ref InstanceType
-  #      KeyName: deyaa-Think
-  #      #NetworkInterfaces: 
-  #      #  - DeviceIndex: 0
-        #    AssociatePublicIpAddress: true
-        #    DeleteOnTermination: true
-        #    Groups:
-        #     - !Ref WebAppSg
-        #     - !Ref ALBSG
-        #    SubnetId: 
-        #      Fn::ImportValue: !Sub ${Infra}-PubSub1 
-        #  - DeviceIndex: 1
-        #    AssociatePublicIpAddress: true
-        #    DeleteOnTermination: true
-        #    Groups:
-        #     - !Ref WebAppSg
-        #     - !Ref ALBSG
-        #    SubnetId: 
-        #      Fn::ImportValue: !Sub ${Infra}-PubSub2 
-        #  - DeviceIndex: 2
-        #    AssociatePublicIpAddress: true
-        #    DeleteOnTermination: true
-        #    Groups:
-        #     - !Ref WebAppSg
-        #     - !Ref ALBSG
-        #    SubnetId: 
-        #      Fn::ImportValue: !Sub ${Infra}-PriSub1 
-        #  - DeviceIndex: 3
-        #    AssociatePublicIpAddress: true
-        #    DeleteOnTermination: true
-        #    Groups:
-        #      - !Ref WebAppSg
-        #      - !Ref ALBSG
-        #    SubnetId: 
-        #      Fn::ImportValue: !Sub ${Infra}-PriSub2 
-        #SecurityGroupIds: 
-        #  - !Ref WebAppSg
-        #TagSpecifications: 
-        #  - ResourceType: instance
-        #    Tags:
-        #      Key: Name
-        #      Value: !Ref EnvName
-        #    #PropagateAtLaunch: true
-        #  - ResourceType: volume
-        #    Tags:
-        #      Key: Name
-        #      Value: !Ref EnvName
-        #    #PropagateAtLaunch: true
-        #UserData: 
-        #  Fn::Base64: !Sub |
-        #    #!/bin/bash
-        #    apt-get update -y
-        #    apt-get install unzip awscli -y
-        #    apt-get install apache2 -y
-        #    systemctl start apache2.service
-        #    cd /var/www/html
-        #    aws s3 cp s3://udacity-demo-1/udacity.zip .
-        #    unzip -o udacity.zip
-
-  
-  
-
-  
