@@ -1,15 +1,23 @@
 ##
-    
+Parameters:
+  EnvName: 
+    Type: String
+    Default: udagram-nest
+  MyIp:
+    Type: String
+        
 Resources:
   Infra:
     Type: AWS::CloudFormation::Stack
     Properties:
-      #TemplateURL: https://udagram-nest.s3.eu-west-2.amazonaws.com/udagram-infra.yaml
-      TemplateURL: https://github.com/deyaa-m/CloudformationHAproject/blob/master/udagram-infra.yaml
-
+      TemplateURL: https://udagram-nest.s3.eu-west-2.amazonaws.com/udagram-infra.yaml
+      #TemplateURL: https://github.com/deyaa-m/CloudformationHAproject/blob/master/udagram-infra.yaml
+     
   App:
     Type: AWS::CloudFormation::Stack
     DependsOn: Infra
     Properties:
-      #TemplateURL: https://udagram-nest.s3.eu-west-2.amazonaws.com/udagram-app.yaml
-      TemplateURL: https://github.com/deyaa-m/CloudformationHAproject/blob/master/udagram-app.yaml
+      TemplateURL: https://udagram-nest.s3.eu-west-2.amazonaws.com/udagram-app.yaml
+      #TemplateURL: https://github.com/deyaa-m/CloudformationHAproject/blob/master/udagram-app.yaml
+      Parameters:
+        HomeIp: !Ref MyIp
