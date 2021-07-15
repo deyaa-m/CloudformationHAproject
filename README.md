@@ -19,10 +19,27 @@ The project is split in two main parts:
 
 *ps*: wait untill first stack is provisioned/deleted before further action.
 
-*update:* if you hate wating, I would suggest using this:
+##update: Nesting
 
 ### Nested Stacks:
 
-**Provision:**  ``` aws cloudformation create-stack --stack-name udagram-nest --template-body file://udagram-nest.yaml  --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND```
+Following **Best Practices**, nesting was more reliable and automattion oriented.
+
+Running the following script will create a root stack with Infra and App stacks as chlidren.
+
+**Provision:**  
+``` 
+aws cloudformation create-stack --stack-name udagram-nest \
+--template-url https://udagram-nest.s3.eu-west-2.amazonaws.com/udagram-nest.yaml \
+--parameters ParameterKey=MyIp,ParameterValue=$(curl -s http://checkip.amazonaws.com/)/32 \
+--capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND
+```
+
+Explanations: 
+
+``` CAPABILITY_NAMED_IAM``` gives stack the capability of creating IAM Roles
+
+```CAPABILITY_AUTO_EXPAND``` gives stack the capability of nesting
+```Parameter``` it run a shell command to identify your local public IP address to use it as sourceip in Bastion SG
 
 **Delete:** ```aws cloudformation delete-stack udagram-nest```
